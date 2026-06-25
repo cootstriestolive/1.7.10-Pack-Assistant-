@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Remnant — Quest Companion</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Quest Companion">
+<meta name="theme-color" content="#071020">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&family=Orbitron:wght@500;700&family=Fira+Mono:wght@400;500&display=swap');
+:root {
+  --aqua:#00c8e0; --aqua-light:#7eeeff;
+  --glass-bg:rgba(255,255,255,0.07); --glass-border:rgba(255,255,255,0.18); --glass-shine:rgba(255,255,255,0.25);
+  --white:#fff; --white-soft:rgba(255,255,255,0.85); --white-dim:rgba(255,255,255,0.45);
+  --tech-color:#38bdf8; --magic-color:#c084fc; --build-color:#4ade80;
+  --explore-color:#34d399; --combat-color:#f87171; --farm-color:#fbbf24; --endgame-color:#e879f9;
+  --wiki-color:#60a5fa; --cc-color:#f97316; --oc-color:#a78bfa;
+  --company-color:#e2c97e; --company-dim:#a8905a; --company-bg:rgba(226,201,126,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{min-height:100vh;font-family:'Nunito',sans-serif;background:radial-gradient(ellipse 80% 60% at 60% -10%,#1a6fa8 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 10% 80%,#0a4d6e 0%,transparent 55%),linear-gradient(160deg,#071020 0%,#0b2a50 40%,#082038 100%);display:flex;flex-direction:column;align-items:center;padding:24px 16px 40px;position:relative;overflow-x:hidden;}
+body::before{content:'';position:fixed;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(0,180,220,0.12) 0%,transparent 70%);top:-150px;right:-100px;pointer-events:none;animation:orb-drift 14s ease-in-out infinite alternate;}
+body::after{content:'';position:fixed;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(100,60,200,0.10) 0%,transparent 70%);bottom:-100px;left:-80px;pointer-events:none;animation:orb-drift 18s ease-in-out infinite alternate-reverse;}
+@keyframes orb-drift{from{transform:translate(0,0) scale(1);}to{transform:translate(30px,20px) scale(1.08);}}
+
+/* HERO */
+.hero{width:100%;max-width:960px;text-align:center;margin-bottom:20px;}
+.hero-orb{width:90px;height:90px;margin:0 auto 14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#aff4ff 0%,#00c8e0 40%,#005f80 100%);box-shadow:0 0 0 6px rgba(0,200,224,0.15),0 0 30px rgba(0,200,224,0.5),0 0 70px rgba(0,200,224,0.2);position:relative;animation:orb-pulse 4s ease-in-out infinite;}
+.hero-orb::after{content:'⚡';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2.2rem;filter:drop-shadow(0 0 8px white);}
+@keyframes orb-pulse{0%,100%{box-shadow:0 0 0 6px rgba(0,200,224,0.15),0 0 30px rgba(0,200,224,0.5),0 0 70px rgba(0,200,224,0.2);}50%{box-shadow:0 0 0 10px rgba(0,200,224,0.10),0 0 50px rgba(0,200,224,0.7),0 0 100px rgba(0,200,224,0.3);}}
+.hero h1{font-family:'Orbitron',sans-serif;font-size:1.55rem;font-weight:700;color:var(--white);letter-spacing:3px;text-shadow:0 0 20px var(--aqua),0 2px 4px rgba(0,0,0,0.5);margin-bottom:6px;}
+.hero p{color:var(--white-dim);font-size:0.82rem;letter-spacing:1px;}
+
+/* GLASS */
+.glass{background:var(--glass-bg);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border:1px solid var(--glass-border);border-radius:16px;position:relative;overflow:hidden;}
+.glass::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--glass-shine),transparent);pointer-events:none;}
+.panel{width:100%;max-width:960px;}
+
+/* TOP TABS */
+.tab-bar{display:flex;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.15);flex-wrap:wrap;}
+.tab-btn{font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:800;padding:13px 20px;border:none;background:transparent;color:var(--white-dim);cursor:pointer;letter-spacing:0.5px;position:relative;transition:color 0.2s;display:flex;align-items:center;gap:7px;white-space:nowrap;}
+.tab-btn:hover{color:var(--white);}
+.tab-btn.active{color:var(--white);}
+.tab-btn.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0;}
+.tab-btn[data-tab="terminal"].active::after{background:var(--company-color);box-shadow:0 0 8px var(--company-color);}
+.tab-btn[data-tab="quests"].active::after{background:var(--aqua);box-shadow:0 0 8px var(--aqua);}
+.tab-btn[data-tab="wiki"].active::after{background:var(--wiki-color);box-shadow:0 0 8px var(--wiki-color);}
+.tab-btn[data-tab="lua"].active::after{background:var(--cc-color);box-shadow:0 0 8px var(--cc-color);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* SUBTABS */
+.sub-tab-bar{display:flex;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.2);padding:0 16px;gap:4px;}
+.sub-tab-btn{font-family:'Nunito',sans-serif;font-size:0.76rem;font-weight:700;padding:9px 16px;border:none;background:transparent;color:var(--white-dim);cursor:pointer;letter-spacing:0.5px;position:relative;transition:color 0.2s;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.sub-tab-btn:hover{color:var(--white);}
+.sub-tab-btn[data-sub="cc"].active{color:var(--cc-color);border-bottom-color:var(--cc-color);}
+.sub-tab-btn[data-sub="oc"].active{color:var(--oc-color);border-bottom-color:var(--oc-color);}
+.sub-panel{display:none;}
+.sub-panel.active{display:block;}
+
+/* CONTROLS */
+.controls{padding:14px 18px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08);}
+.ctrl-group{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.ctrl-label{font-size:0.7rem;font-weight:700;letter-spacing:1.5px;color:var(--white-dim);text-transform:uppercase;white-space:nowrap;}
+.divider{width:1px;height:22px;background:rgba(255,255,255,0.1);flex-shrink:0;}
+.pill-btn{font-family:'Nunito',sans-serif;font-size:0.75rem;font-weight:700;padding:5px 14px;border-radius:999px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.06);color:var(--white-dim);cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.pill-btn:hover{background:rgba(255,255,255,0.12);color:var(--white);}
+.pill-btn.active-stage{background:linear-gradient(135deg,rgba(0,200,224,0.35),rgba(0,100,180,0.35));border-color:var(--aqua);color:var(--aqua-light);box-shadow:0 0 12px rgba(0,200,224,0.25);}
+.pill-btn[data-cat="all"].active-cat    {background:rgba(0,200,224,0.2);  border-color:var(--aqua);          color:var(--aqua-light);   box-shadow:0 0 10px rgba(0,200,224,0.2);}
+.pill-btn[data-cat="tech"].active-cat   {background:rgba(56,189,248,0.2); border-color:var(--tech-color);    color:var(--tech-color);   box-shadow:0 0 10px rgba(56,189,248,0.2);}
+.pill-btn[data-cat="magic"].active-cat  {background:rgba(192,132,252,0.2);border-color:var(--magic-color);   color:var(--magic-color);  box-shadow:0 0 10px rgba(192,132,252,0.2);}
+.pill-btn[data-cat="build"].active-cat  {background:rgba(74,222,128,0.2); border-color:var(--build-color);   color:var(--build-color);  box-shadow:0 0 10px rgba(74,222,128,0.2);}
+.pill-btn[data-cat="explore"].active-cat{background:rgba(52,211,153,0.2); border-color:var(--explore-color); color:var(--explore-color);box-shadow:0 0 10px rgba(52,211,153,0.2);}
+.pill-btn[data-cat="combat"].active-cat {background:rgba(248,113,113,0.2);border-color:var(--combat-color);  color:var(--combat-color); box-shadow:0 0 10px rgba(248,113,113,0.2);}
+.pill-btn[data-cat="farm"].active-cat   {background:rgba(251,191,36,0.2); border-color:var(--farm-color);    color:var(--farm-color);   box-shadow:0 0 10px rgba(251,191,36,0.2);}
+.pill-btn[data-cat="endgame"].active-cat{background:rgba(232,121,249,0.2);border-color:var(--endgame-color); color:var(--endgame-color);box-shadow:0 0 10px rgba(232,121,249,0.2);}
+
+/* OUTPUT */
+.output{padding:22px 20px;min-height:320px;max-height:440px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(0,200,224,0.3) transparent;}
+.output::-webkit-scrollbar{width:5px;}
+.output::-webkit-scrollbar-thumb{background:rgba(0,200,224,0.3);border-radius:99px;}
+.boot-line{font-size:0.72rem;color:var(--white-dim);margin-bottom:18px;letter-spacing:0.5px;display:flex;align-items:center;gap:8px;}
+.boot-line::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--build-color);box-shadow:0 0 6px var(--build-color);flex-shrink:0;}
+.msg-block{margin-bottom:20px;}
+.msg-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px;}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;margin-top:2px;}
+.avatar.ai  {background:linear-gradient(135deg,#00c8e0,#0050a0);box-shadow:0 0 10px rgba(0,200,224,0.4);}
+.avatar.wiki{background:linear-gradient(135deg,#60a5fa,#1d4ed8);box-shadow:0 0 10px rgba(96,165,250,0.4);}
+.avatar.cc  {background:linear-gradient(135deg,#f97316,#9a3412);box-shadow:0 0 10px rgba(249,115,22,0.4);}
+.avatar.oc  {background:linear-gradient(135deg,#a78bfa,#5b21b6);box-shadow:0 0 10px rgba(167,139,250,0.4);}
+.avatar.you {background:linear-gradient(135deg,#c084fc,#5b21b6);box-shadow:0 0 10px rgba(192,132,252,0.3);}
+.msg-name{font-size:0.7rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;}
+.msg-name.ai  {color:var(--aqua);}
+.msg-name.wiki{color:var(--wiki-color);}
+.msg-name.cc  {color:var(--cc-color);}
+.msg-name.oc  {color:var(--oc-color);}
+.msg-name.you {color:var(--magic-color);}
+.msg-body{color:var(--white-soft);font-size:0.87rem;line-height:1.75;}
+.msg-body p{margin-bottom:8px;}
+.msg-body strong{color:var(--white);}
+
+/* QUEST CARDS */
+.quest-card{border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);padding:14px 16px;margin:10px 0;position:relative;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s;}
+.quest-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);}
+.quest-card:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(0,0,0,0.3);}
+.quest-card.tech-card   {border-left:3px solid var(--tech-color);   background:linear-gradient(135deg,rgba(56,189,248,0.06), rgba(255,255,255,0.03));}
+.quest-card.magic-card  {border-left:3px solid var(--magic-color);  background:linear-gradient(135deg,rgba(192,132,252,0.06),rgba(255,255,255,0.03));}
+.quest-card.build-card  {border-left:3px solid var(--build-color);  background:linear-gradient(135deg,rgba(74,222,128,0.06), rgba(255,255,255,0.03));}
+.quest-card.explore-card{border-left:3px solid var(--explore-color);background:linear-gradient(135deg,rgba(52,211,153,0.06), rgba(255,255,255,0.03));}
+.quest-card.combat-card {border-left:3px solid var(--combat-color); background:linear-gradient(135deg,rgba(248,113,113,0.06),rgba(255,255,255,0.03));}
+.quest-card.farm-card   {border-left:3px solid var(--farm-color);   background:linear-gradient(135deg,rgba(251,191,36,0.06), rgba(255,255,255,0.03));}
+.quest-card.endgame-card{border-left:3px solid var(--endgame-color);background:linear-gradient(135deg,rgba(232,121,249,0.06),rgba(255,255,255,0.03));}
+.quest-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
+.quest-title-text{font-weight:800;font-size:0.92rem;color:var(--white);flex:1;}
+.qtag{font-size:0.62rem;font-weight:800;letter-spacing:1px;padding:2px 8px;border-radius:999px;text-transform:uppercase;}
+.qtag.tech   {background:rgba(56,189,248,0.2); color:var(--tech-color);   border:1px solid rgba(56,189,248,0.3);}
+.qtag.magic  {background:rgba(192,132,252,0.2);color:var(--magic-color);  border:1px solid rgba(192,132,252,0.3);}
+.qtag.build  {background:rgba(74,222,128,0.2); color:var(--build-color);  border:1px solid rgba(74,222,128,0.3);}
+.qtag.explore{background:rgba(52,211,153,0.2); color:var(--explore-color);border:1px solid rgba(52,211,153,0.3);}
+.qtag.combat {background:rgba(248,113,113,0.2);color:var(--combat-color); border:1px solid rgba(248,113,113,0.3);}
+.qtag.farm   {background:rgba(251,191,36,0.2); color:var(--farm-color);   border:1px solid rgba(251,191,36,0.3);}
+.qtag.endgame{background:rgba(232,121,249,0.2);color:var(--endgame-color);border:1px solid rgba(232,121,249,0.3);}
+.done-btn{font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--white-dim);cursor:pointer;transition:all 0.2s;}
+.done-btn:hover{border-color:var(--build-color);color:var(--build-color);}
+.quest-card.done{opacity:0.4;}
+.quest-card.done .quest-title-text{text-decoration:line-through;}
+.quest-desc{color:rgba(255,255,255,0.7);font-size:0.83rem;line-height:1.65;}
+
+/* WIKI CARD */
+.wiki-card{border-radius:12px;border:1px solid rgba(96,165,250,0.2);background:linear-gradient(135deg,rgba(96,165,250,0.06),rgba(255,255,255,0.02));padding:14px 16px;margin:10px 0;position:relative;overflow:hidden;}
+.wiki-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(96,165,250,0.3),transparent);}
+.wiki-card-body{color:rgba(255,255,255,0.75);font-size:0.83rem;line-height:1.7;}
+.wiki-card-body p{margin-bottom:6px;}
+
+/* CODE */
+.code-block{background:rgba(0,0,0,0.5);border-radius:10px;border:1px solid rgba(255,255,255,0.08);margin:10px 0;overflow:hidden;position:relative;}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(0,0,0,0.3);border-bottom:1px solid rgba(255,255,255,0.06);}
+.code-lang{font-size:0.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;}
+.code-lang.cc{color:var(--cc-color);}
+.code-lang.oc{color:var(--oc-color);}
+.code-copy-btn{font-family:'Nunito',sans-serif;font-size:0.65rem;font-weight:700;padding:3px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--white-dim);cursor:pointer;transition:all 0.2s;}
+.code-copy-btn:hover{color:var(--white);border-color:rgba(255,255,255,0.35);}
+.code-copy-btn.copied{color:var(--build-color);border-color:var(--build-color);}
+pre{font-family:'Fira Mono',monospace;font-size:0.8rem;line-height:1.65;padding:14px 16px;color:#e2e8f0;overflow-x:auto;white-space:pre;margin:0;}
+pre .kw{color:#c084fc;}
+pre .str{color:#4ade80;}
+pre .num{color:#fb923c;}
+pre .cmt{color:#6b7280;font-style:italic;}
+.lua-explain{color:rgba(255,255,255,0.75);font-size:0.83rem;line-height:1.7;margin:8px 0;}
+.lua-explain p{margin-bottom:6px;}
+
+/* ══ THE TERMINAL ══ */
+.terminal-output{padding:0;min-height:420px;max-height:520px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(226,201,126,0.3) transparent;}
+.terminal-output::-webkit-scrollbar{width:5px;}
+.terminal-output::-webkit-scrollbar-thumb{background:rgba(226,201,126,0.3);border-radius:99px;}
+
+/* Company avatar SVG wrapper */
+.company-avatar{width:38px;height:38px;flex-shrink:0;margin-top:2px;}
+
+/* Terminal message */
+.terminal-msg{padding:20px 22px;border-bottom:1px solid rgba(226,201,126,0.07);position:relative;}
+.terminal-msg::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--company-color),transparent);}
+.terminal-msg-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.terminal-name{font-size:0.68rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--company-color);}
+.terminal-timestamp{font-size:0.62rem;color:rgba(226,201,126,0.35);letter-spacing:1px;}
+.terminal-msg-body{color:rgba(255,255,255,0.82);font-size:0.88rem;line-height:1.8;padding-left:48px;}
+.terminal-msg-body p{margin-bottom:8px;}
+
+/* Player reply in terminal */
+.terminal-reply{padding:16px 22px 16px 70px;border-bottom:1px solid rgba(255,255,255,0.04);}
+.terminal-reply-name{font-size:0.65rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--magic-color);margin-bottom:6px;}
+.terminal-reply-body{color:var(--white-soft);font-size:0.87rem;line-height:1.75;}
+
+/* Question card */
+.question-card{background:var(--company-bg);border:1px solid rgba(226,201,126,0.2);border-radius:12px;padding:16px 18px;margin:12px 0;}
+.question-card::before{content:'';display:block;width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(226,201,126,0.3),transparent);margin-bottom:14px;}
+.question-text{color:var(--company-color);font-size:0.88rem;font-weight:700;margin-bottom:12px;line-height:1.6;}
+.question-input{width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(226,201,126,0.2);border-radius:8px;color:var(--white);font-family:'Nunito',sans-serif;font-size:0.85rem;padding:10px 12px;outline:none;resize:none;min-height:44px;max-height:120px;line-height:1.5;transition:border-color 0.2s;}
+.question-input::placeholder{color:rgba(255,255,255,0.2);}
+.question-input:focus{border-color:rgba(226,201,126,0.5);box-shadow:0 0 0 3px rgba(226,201,126,0.08);}
+.question-submit{margin-top:8px;font-family:'Nunito',sans-serif;font-size:0.75rem;font-weight:700;padding:7px 18px;border-radius:999px;border:1px solid rgba(226,201,126,0.4);background:rgba(226,201,126,0.12);color:var(--company-color);cursor:pointer;transition:all 0.2s;}
+.question-submit:hover{background:rgba(226,201,126,0.22);box-shadow:0 0 12px rgba(226,201,126,0.2);}
+.question-submit:disabled{opacity:0.4;cursor:default;}
+
+/* Session Review */
+.review-card{background:linear-gradient(135deg,rgba(226,201,126,0.06),rgba(255,255,255,0.02));border:1px solid rgba(226,201,126,0.25);border-radius:14px;padding:20px 22px;margin:12px 0;position:relative;overflow:hidden;}
+.review-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(226,201,126,0.5),transparent);}
+.review-title{font-family:'Orbitron',sans-serif;font-size:0.78rem;letter-spacing:2px;color:var(--company-color);margin-bottom:12px;text-transform:uppercase;}
+.review-body{color:rgba(255,255,255,0.78);font-size:0.84rem;line-height:1.8;}
+.review-body p{margin-bottom:8px;}
+.review-rating{display:inline-flex;align-items:center;gap:6px;background:rgba(226,201,126,0.12);border:1px solid rgba(226,201,126,0.3);border-radius:999px;padding:4px 14px;font-size:0.78rem;font-weight:800;color:var(--company-color);letter-spacing:1px;margin-top:10px;}
+
+/* Terminal footer */
+.terminal-footer{border-top:1px solid rgba(226,201,126,0.1);padding:12px 18px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:rgba(0,0,0,0.15);}
+.terminal-action-btn{font-family:'Nunito',sans-serif;font-size:0.73rem;font-weight:700;padding:6px 14px;border-radius:999px;border:1px solid rgba(226,201,126,0.25);background:transparent;color:rgba(226,201,126,0.6);cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.terminal-action-btn:hover{border-color:rgba(226,201,126,0.5);color:var(--company-color);background:rgba(226,201,126,0.08);}
+
+/* Typing */
+.typing-row{display:none;align-items:center;gap:10px;padding:0 20px 14px;}
+.typing-row.visible{display:flex;}
+.typing-dots span{display:inline-block;width:6px;height:6px;border-radius:50%;margin:0 2px;animation:dot-bounce 1.2s ease-in-out infinite;}
+.typing-dots span:nth-child(2){animation-delay:0.2s;}
+.typing-dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes dot-bounce{0%,80%,100%{transform:translateY(0);opacity:0.4;}40%{transform:translateY(-6px);opacity:1;}}
+.typing-label{font-size:0.72rem;font-weight:600;letter-spacing:1px;}
+.td-quest span,.typing-label.quest{background:unset;color:var(--aqua);}
+.td-quest span{background:var(--aqua);}
+.td-wiki span,.typing-label.wiki{color:var(--wiki-color);}
+.td-wiki span{background:var(--wiki-color);}
+.td-cc span,.typing-label.cc{color:var(--cc-color);}
+.td-cc span{background:var(--cc-color);}
+.td-oc span,.typing-label.oc{color:var(--oc-color);}
+.td-oc span{background:var(--oc-color);}
+.td-company span,.typing-label.company{color:var(--company-color);}
+.td-company span{background:var(--company-color);}
+
+/* INPUT */
+.input-area{border-top:1px solid rgba(255,255,255,0.08);padding:14px 16px;display:flex;gap:10px;align-items:flex-end;}
+textarea{flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:var(--white);font-family:'Nunito',sans-serif;font-size:0.88rem;font-weight:500;padding:10px 14px;resize:none;outline:none;min-height:44px;max-height:100px;line-height:1.5;transition:border-color 0.2s,box-shadow 0.2s;}
+textarea::placeholder{color:rgba(255,255,255,0.25);}
+textarea:focus{border-color:rgba(0,200,224,0.5);box-shadow:0 0 0 3px rgba(0,200,224,0.1);}
+#wikiInput:focus{border-color:rgba(96,165,250,0.5);box-shadow:0 0 0 3px rgba(96,165,250,0.1);}
+#ccInput:focus{border-color:rgba(249,115,22,0.5);box-shadow:0 0 0 3px rgba(249,115,22,0.1);}
+#ocInput:focus{border-color:rgba(167,139,250,0.5);box-shadow:0 0 0 3px rgba(167,139,250,0.1);}
+.send-btn{width:44px;height:44px;border-radius:12px;border:1px solid rgba(0,200,224,0.4);background:linear-gradient(135deg,rgba(0,200,224,0.3),rgba(0,80,160,0.3));color:var(--aqua-light);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.send-btn:hover:not(:disabled){background:linear-gradient(135deg,rgba(0,200,224,0.5),rgba(0,100,200,0.4));box-shadow:0 0 22px rgba(0,200,224,0.4);transform:scale(1.05);}
+.send-btn:disabled{opacity:0.3;cursor:default;transform:none;}
+.send-btn.wiki-send{border-color:rgba(96,165,250,0.4); background:linear-gradient(135deg,rgba(96,165,250,0.3), rgba(29,78,216,0.3)); color:#bfdbfe;}
+.send-btn.wiki-send:hover:not(:disabled){background:linear-gradient(135deg,rgba(96,165,250,0.5),rgba(29,78,216,0.4));box-shadow:0 0 22px rgba(96,165,250,0.4);}
+.send-btn.cc-send{border-color:rgba(249,115,22,0.4);  background:linear-gradient(135deg,rgba(249,115,22,0.3), rgba(154,52,18,0.3));  color:#fed7aa;}
+.send-btn.cc-send:hover:not(:disabled){background:linear-gradient(135deg,rgba(249,115,22,0.5),rgba(154,52,18,0.4));box-shadow:0 0 22px rgba(249,115,22,0.4);}
+.send-btn.oc-send{border-color:rgba(167,139,250,0.4); background:linear-gradient(135deg,rgba(167,139,250,0.3),rgba(91,33,182,0.3));  color:#ddd6fe;}
+.send-btn.oc-send:hover:not(:disabled){background:linear-gradient(135deg,rgba(167,139,250,0.5),rgba(91,33,182,0.4));box-shadow:0 0 22px rgba(167,139,250,0.4);}
+
+/* QUICK */
+.quick-area{padding:12px 16px 16px;display:flex;flex-wrap:wrap;gap:7px;border-top:1px solid rgba(255,255,255,0.06);}
+.quick-btn{font-family:'Nunito',sans-serif;font-size:0.73rem;font-weight:700;padding:6px 13px;border-radius:999px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.6);cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.quick-btn:hover      {background:rgba(0,200,224,0.12);  border-color:rgba(0,200,224,0.35);  color:var(--aqua-light);}
+.quick-btn.wiki-quick:hover{background:rgba(96,165,250,0.12); border-color:rgba(96,165,250,0.35); color:#bfdbfe;}
+.quick-btn.cc-quick:hover  {background:rgba(249,115,22,0.12); border-color:rgba(249,115,22,0.35); color:#fed7aa;}
+.quick-btn.oc-quick:hover  {background:rgba(167,139,250,0.12);border-color:rgba(167,139,250,0.35);color:#ddd6fe;}
+
+/* EXPORT */
+.export-bar{border-top:1px solid rgba(255,255,255,0.06);padding:10px 16px;display:flex;align-items:center;gap:10px;background:rgba(0,0,0,0.15);}
+.export-label{font-size:0.7rem;color:var(--white-dim);letter-spacing:0.5px;flex:1;}
+.export-btn{font-family:'Nunito',sans-serif;font-size:0.73rem;font-weight:700;padding:6px 14px;border-radius:999px;border:1px solid rgba(0,200,224,0.35);background:rgba(0,200,224,0.1);color:var(--aqua-light);cursor:pointer;transition:all 0.2s;}
+.export-btn:hover{background:rgba(0,200,224,0.22);box-shadow:0 0 12px rgba(0,200,224,0.2);}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(20,40,70,0.95);border:1px solid rgba(0,200,224,0.4);color:var(--aqua-light);font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:700;padding:10px 22px;border-radius:999px;box-shadow:0 4px 24px rgba(0,0,0,0.4);opacity:0;pointer-events:none;transition:opacity 0.25s,transform 0.25s;z-index:1000;white-space:nowrap;}
+.toast.visible{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);z-index:500;align-items:center;justify-content:center;}
+.modal-overlay.visible{display:flex;}
+.modal{background:linear-gradient(160deg,#0d2040,#091828);border:1px solid rgba(0,200,224,0.25);border-radius:16px;padding:24px;width:90%;max-width:540px;box-shadow:0 20px 60px rgba(0,0,0,0.6);position:relative;}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,200,224,0.4),transparent);}
+.modal-title{font-family:'Orbitron',sans-serif;font-size:0.9rem;color:var(--aqua-light);letter-spacing:2px;margin-bottom:6px;}
+.modal-sub{font-size:0.75rem;color:var(--white-dim);margin-bottom:14px;line-height:1.5;}
+.export-textarea{width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:rgba(255,255,255,0.8);font-family:'Nunito',sans-serif;font-size:0.78rem;line-height:1.6;padding:12px 14px;resize:none;height:180px;outline:none;margin-bottom:14px;}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;}
+.modal-close{font-family:'Nunito',sans-serif;font-size:0.75rem;font-weight:700;padding:7px 16px;border-radius:999px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--white-dim);cursor:pointer;transition:all 0.2s;}
+.modal-close:hover{color:var(--white);border-color:rgba(255,255,255,0.3);}
+.modal-copy{font-family:'Nunito',sans-serif;font-size:0.75rem;font-weight:700;padding:7px 18px;border-radius:999px;border:1px solid rgba(0,200,224,0.4);background:rgba(0,200,224,0.15);color:var(--aqua-light);cursor:pointer;transition:all 0.2s;}
+.modal-copy:hover{background:rgba(0,200,224,0.28);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-orb"></div>
+  <h1>QUEST COMPANION</h1>
+  <p>1.7.10 PACK &nbsp;·&nbsp; TECHNIC LAUNCHER &nbsp;·&nbsp; REMNANT OPERATIVE FILE</p>
+</div>
+
+<div class="glass panel">
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="terminal" onclick="switchTab('terminal')">◈ The Terminal</button>
+    <button class="tab-btn" data-tab="quests"   onclick="switchTab('quests')">🎯 Quests</button>
+    <button class="tab-btn" data-tab="wiki"     onclick="switchTab('wiki')">📖 Wiki</button>
+    <button class="tab-btn" data-tab="lua"      onclick="switchTab('lua')">💻 Lua Coder</button>
+  </div>
+
+  <!-- ══ THE TERMINAL ══ -->
+  <div class="tab-panel active" id="tab-terminal">
+    <div class="terminal-output" id="terminalOutput">
+      <!-- Boot message -->
+      <div style="padding:14px 22px 6px;font-size:0.68rem;color:rgba(226,201,126,0.3);letter-spacing:1.5px;">COMPANY TERMINAL v4.1 · OPERATIVE: REMNANT · SESSION INITIATED</div>
+
+      <!-- Opening message -->
+      <div class="terminal-msg">
+        <div class="terminal-msg-header">
+          <svg class="company-avatar" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="19" cy="19" r="18" fill="rgba(10,18,30,0.9)" stroke="rgba(226,201,126,0.4)" stroke-width="1"/>
+            <!-- Outer ring segments -->
+            <circle cx="19" cy="19" r="14" stroke="rgba(226,201,126,0.15)" stroke-width="0.5"/>
+            <!-- Eye iris -->
+            <circle cx="19" cy="19" r="9" fill="rgba(226,201,126,0.06)" stroke="rgba(226,201,126,0.5)" stroke-width="1"/>
+            <!-- Iris facets -->
+            <line x1="19" y1="10" x2="19" y2="28" stroke="rgba(226,201,126,0.2)" stroke-width="0.5"/>
+            <line x1="10" y1="19" x2="28" y2="19" stroke="rgba(226,201,126,0.2)" stroke-width="0.5"/>
+            <line x1="12.6" y1="12.6" x2="25.4" y2="25.4" stroke="rgba(226,201,126,0.2)" stroke-width="0.5"/>
+            <line x1="25.4" y1="12.6" x2="12.6" y2="25.4" stroke="rgba(226,201,126,0.2)" stroke-width="0.5"/>
+            <!-- Pupil -->
+            <circle cx="19" cy="19" r="4" fill="rgba(226,201,126,0.9)">
+              <animate attributeName="r" values="4;4.8;4" dur="3s" repeatCount="indefinite"/>
+              <animate attributeName="fill-opacity" values="0.9;1;0.9" dur="3s" repeatCount="indefinite"/>
+            </circle>
+            <!-- Pupil glint -->
+            <circle cx="17.5" cy="17.5" r="1.2" fill="rgba(255,255,255,0.6)"/>
+            <!-- Corner marks -->
+            <path d="M4 10 L4 4 L10 4" stroke="rgba(226,201,126,0.4)" stroke-width="1" fill="none"/>
+            <path d="M28 4 L34 4 L34 10" stroke="rgba(226,201,126,0.4)" stroke-width="1" fill="none"/>
+            <path d="M4 28 L4 34 L10 34" stroke="rgba(226,201,126,0.4)" stroke-width="1" fill="none"/>
+            <path d="M34 28 L34 34 L28 34" stroke="rgba(226,201,126,0.4)" stroke-width="1" fill="none"/>
+          </svg>
+          <div>
+            <div class="terminal-name">The Terminal</div>
+            <div class="terminal-timestamp" id="sessionTimestamp"></div>
+          </div>
+        </div>
+        <div class="terminal-msg-body">
+          <p>Good to have you back, <strong>Remnant</strong>.</p>
+          <p>The Company has been watching your progress with considerable interest. Before you begin today's session, we have a few intake questions. Your answers inform our end-of-session review. Answer honestly — The Company values candour over performance.</p>
+          <p>The Terminal will check in with you at key moments throughout the session. You may also request a review at any time.</p>
+        </div>
+      </div>
+
+      <!-- First question injected by JS -->
+      <div id="questionAnchor"></div>
+    </div>
+
+    <div class="typing-row" id="terminalTyping" style="padding:8px 22px 12px;">
+      <svg width="22" height="22" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+        <circle cx="19" cy="19" r="18" fill="rgba(10,18,30,0.9)" stroke="rgba(226,201,126,0.4)" stroke-width="1"/>
+        <circle cx="19" cy="19" r="9"  stroke="rgba(226,201,126,0.5)" stroke-width="1" fill="rgba(226,201,126,0.06)"/>
+        <circle cx="19" cy="19" r="4"  fill="rgba(226,201,126,0.9)"/>
+        <circle cx="17.5" cy="17.5" r="1.2" fill="rgba(255,255,255,0.6)"/>
+      </svg>
+      <div class="typing-dots td-company"><span></span><span></span><span></span></div>
+      <span class="typing-label company">The Terminal is composing...</span>
+    </div>
+
+    <div class="terminal-footer">
+      <button class="terminal-action-btn" onclick="triggerCheckIn()">◈ Request Check-In</button>
+      <button class="terminal-action-btn" onclick="requestReview()">📋 Generate Session Review</button>
+      <button class="terminal-action-btn" onclick="triggerEndSession()">⏹ End Session</button>
+      <div style="display:flex;align-items:center;gap:7px;margin-left:auto;">
+        <span style="font-size:0.65rem;font-weight:700;letter-spacing:1.5px;color:rgba(226,201,126,0.4);text-transform:uppercase;white-space:nowrap;">Check-In Freq</span>
+        <select id="freqSelect" onchange="setFrequency(this.value)" style="font-family:'Nunito',sans-serif;font-size:0.72rem;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid rgba(226,201,126,0.25);background:rgba(0,0,0,0.3);color:rgba(226,201,126,0.7);cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;">
+          <option value="high">Often · 3–6 min</option>
+          <option value="medium">Moderate · 8–14 min</option>
+          <option value="low">Rarely · 20–35 min</option>
+          <option value="off">Off</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ QUESTS ══ -->
+  <div class="tab-panel" id="tab-quests">
+    <div class="controls">
+      <span class="ctrl-label">Stage</span>
+      <div class="ctrl-group">
+        <button class="pill-btn active-stage" data-stage="early" onclick="setStage(this)">Early Game</button>
+        <button class="pill-btn" data-stage="mid"  onclick="setStage(this)">Mid Game</button>
+        <button class="pill-btn" data-stage="late" onclick="setStage(this)">Late Game</button>
+      </div>
+      <div class="divider"></div>
+      <span class="ctrl-label">Focus</span>
+      <div class="ctrl-group">
+        <button class="pill-btn active-cat" data-cat="all"     onclick="setFilter(this)">All</button>
+        <button class="pill-btn" data-cat="tech"    onclick="setFilter(this)">⚙ Tech</button>
+        <button class="pill-btn" data-cat="magic"   onclick="setFilter(this)">🔮 Magic</button>
+        <button class="pill-btn" data-cat="build"   onclick="setFilter(this)">🏗 Build</button>
+        <button class="pill-btn" data-cat="explore" onclick="setFilter(this)">🌍 Explore</button>
+        <button class="pill-btn" data-cat="combat"  onclick="setFilter(this)">⚔️ Combat</button>
+        <button class="pill-btn" data-cat="farm"    onclick="setFilter(this)">🌾 Farm</button>
+        <button class="pill-btn" data-cat="endgame" onclick="setFilter(this)">🚀 Endgame</button>
+      </div>
+    </div>
+    <div class="output" id="questOutput">
+      <div class="boot-line">Companion online — Remnant · Intermediate · All categories active</div>
+      <div class="msg-block"><div class="msg-row"><div class="avatar ai">✦</div><div><div class="msg-name ai">Companion</div><div class="msg-body">Welcome back, <strong>Remnant</strong>. Set your stage, pick a focus, and let's get to work.</div></div></div></div>
+    </div>
+    <div class="typing-row" id="questTyping"><div class="avatar ai" style="width:24px;height:24px;font-size:0.7rem;">✦</div><div class="typing-dots td-quest"><span></span><span></span><span></span></div><span class="typing-label quest">Companion is thinking...</span></div>
+    <div class="input-area"><textarea id="questInput" placeholder="Ask for quests, goals, ideas..." rows="1"></textarea><button class="send-btn" id="questSendBtn" onclick="sendQuest()">➤</button></div>
+    <div class="quick-area">
+      <button class="quick-btn" onclick="questQuick('Give me 3 quests I can start on right now')">🎯 Start Quests</button>
+      <button class="quick-btn" onclick="questQuick('What tech automation should I build next?')">⚙ Next Tech Goal</button>
+      <button class="quick-btn" onclick="questQuick('Give me a Thaumcraft progression objective')">🔮 Magic Quest</button>
+      <button class="quick-btn" onclick="questQuick('Suggest a base building challenge')">🏗 Build Challenge</button>
+      <button class="quick-btn" onclick="questQuick('What dimension or biome should I explore next?')">🌍 Exploration</button>
+      <button class="quick-btn" onclick="questQuick('Give me a combat or boss fight challenge')">⚔️ Combat Quest</button>
+      <button class="quick-btn" onclick="questQuick('What farming or resource automation should I set up?')">🌾 Farm Goal</button>
+      <button class="quick-btn" onclick="questQuick('Give me a late game or endgame objective')">🚀 Endgame Goal</button>
+      <button class="quick-btn" onclick="questQuick('I\'m bored, surprise me with something fun to do')">🎲 Surprise Me</button>
+      <button class="quick-btn" onclick="questQuick('What milestone should I aim for this session?')">📍 Session Goal</button>
+    </div>
+    <div class="export-bar"><span class="export-label">📋 Save your progress between sessions</span><button class="export-btn" onclick="openExport()">Export Completed Quests</button></div>
+  </div>
+
+  <!-- ══ WIKI ══ -->
+  <div class="tab-panel" id="tab-wiki">
+    <div class="output" id="wikiOutput">
+      <div class="boot-line">Wiki mode — Ask anything about the 1.7.10 Pack</div>
+      <div class="msg-block"><div class="msg-row"><div class="avatar wiki">📖</div><div><div class="msg-name wiki">Wiki</div><div class="msg-body">Hey <strong>Remnant</strong>! I'm your modpack encyclopedia. Ask me anything about crafting, mechanics, progression, bosses — you name it.</div></div></div></div>
+    </div>
+    <div class="typing-row" id="wikiTyping"><div class="avatar wiki" style="width:24px;height:24px;font-size:0.7rem;">📖</div><div class="typing-dots td-wiki"><span></span><span></span><span></span></div><span class="typing-label wiki">Looking it up...</span></div>
+    <div class="input-area"><textarea id="wikiInput" placeholder="Ask about any mod, recipe, mechanic..." rows="1"></textarea><button class="send-btn wiki-send" id="wikiSendBtn" onclick="sendWiki()">➤</button></div>
+    <div class="quick-area">
+      <button class="quick-btn wiki-quick" onclick="wikiQuick('How do I get started with Thaumcraft 4?')">🔮 Thaumcraft Intro</button>
+      <button class="quick-btn wiki-quick" onclick="wikiQuick('What is the best early game power source in Thermal Expansion?')">⚡ Early Power</button>
+      <button class="quick-btn wiki-quick" onclick="wikiQuick('How does the Tinkers Construct smeltery work?')">🪣 Smeltery Guide</button>
+      <button class="quick-btn wiki-quick" onclick="wikiQuick('How do I start the Twilight Forest?')">🌲 Twilight Forest</button>
+      <button class="quick-btn wiki-quick" onclick="wikiQuick('What are the Botania mana generation options?')">🌸 Botania Mana</button>
+      <button class="quick-btn wiki-quick" onclick="wikiQuick('How does Witchery work and how do I start it?')">🧙 Witchery Basics</button>
+      <button class="quick-btn wiki-quick" onclick="wikiQuick('How do I set up a Galacticraft rocket?')">🚀 Galacticraft</button>
+      <button class="quick-btn wiki-quick" onclick="wikiQuick('What are the best Tinkers Construct tool materials?')">⚒️ Best Materials</button>
+    </div>
+  </div>
+
+  <!-- ══ LUA ══ -->
+  <div class="tab-panel" id="tab-lua">
+    <div class="sub-tab-bar">
+      <button class="sub-tab-btn active" data-sub="cc" onclick="switchSub('cc')">🟠 ComputerCraft</button>
+      <button class="sub-tab-btn" data-sub="oc" onclick="switchSub('oc')">🟣 OpenComputers</button>
+    </div>
+    <div class="sub-panel active" id="sub-cc">
+      <div class="output" id="ccOutput">
+        <div class="boot-line">ComputerCraft Lua — CC 1.6x / 1.7x API</div>
+        <div class="msg-block"><div class="msg-row"><div class="avatar cc">🖥</div><div><div class="msg-name cc">CC Coder</div><div class="msg-body">Hey <strong>Remnant</strong>! I'll write ComputerCraft Lua programs for you — turtles, monitors, modems, redstone, anything.</div></div></div></div>
+      </div>
+      <div class="typing-row" id="ccTyping"><div class="avatar cc" style="width:24px;height:24px;font-size:0.7rem;">🖥</div><div class="typing-dots td-cc"><span></span><span></span><span></span></div><span class="typing-label cc">Writing code...</span></div>
+      <div class="input-area"><textarea id="ccInput" placeholder="Describe what you want the turtle or computer to do..." rows="1"></textarea><button class="send-btn cc-send" id="ccSendBtn" onclick="sendCC()">➤</button></div>
+      <div class="quick-area">
+        <button class="quick-btn cc-quick" onclick="ccQuick('Write a turtle program that mines a 3x3 tunnel forward')">⛏ 3x3 Tunnel Miner</button>
+        <button class="quick-btn cc-quick" onclick="ccQuick('Write a program to display a redstone monitor on a large monitor')">📺 Monitor Display</button>
+        <button class="quick-btn cc-quick" onclick="ccQuick('Write a turtle tree farm that plants and chops trees automatically')">🌲 Tree Farm</button>
+        <button class="quick-btn cc-quick" onclick="ccQuick('Write a program that sorts items in a chest into labelled chests')">📦 Item Sorter</button>
+        <button class="quick-btn cc-quick" onclick="ccQuick('Write a turtle quarry that digs a large area')">🪨 Quarry</button>
+        <button class="quick-btn cc-quick" onclick="ccQuick('Write a program to control a door with a password')">🔐 Password Door</button>
+        <button class="quick-btn cc-quick" onclick="ccQuick('Write a wireless chat program using modems')">📡 Wireless Chat</button>
+        <button class="quick-btn cc-quick" onclick="ccQuick('Write a fuel status monitor for multiple turtles')">⛽ Fuel Monitor</button>
+      </div>
+    </div>
+    <div class="sub-panel" id="sub-oc">
+      <div class="output" id="ocOutput">
+        <div class="boot-line">OpenComputers Lua — OC component API / OpenOS</div>
+        <div class="msg-block"><div class="msg-row"><div class="avatar oc">🖳</div><div><div class="msg-name oc">OC Coder</div><div class="msg-body">Hey <strong>Remnant</strong>! I'll write OpenComputers Lua programs — GPU rendering, robot automation, component API, network messaging.</div></div></div></div>
+      </div>
+      <div class="typing-row" id="ocTyping"><div class="avatar oc" style="width:24px;height:24px;font-size:0.7rem;">🖳</div><div class="typing-dots td-oc"><span></span><span></span><span></span></div><span class="typing-label oc">Writing code...</span></div>
+      <div class="input-area"><textarea id="ocInput" placeholder="Describe what you want the OC computer or robot to do..." rows="1"></textarea><button class="send-btn oc-send" id="ocSendBtn" onclick="sendOC()">➤</button></div>
+      <div class="quick-area">
+        <button class="quick-btn oc-quick" onclick="ocQuick('Write an OC program to display text on a GPU screen')">🖥 GPU Screen</button>
+        <button class="quick-btn oc-quick" onclick="ocQuick('Write a robot program that mines a 3x3 tunnel')">⛏ Robot Miner</button>
+        <button class="quick-btn oc-quick" onclick="ocQuick('Write a program to read and display all connected components')">🔌 List Components</button>
+        <button class="quick-btn oc-quick" onclick="ocQuick('Write a network message program using OC modems')">📡 Network Msg</button>
+        <button class="quick-btn oc-quick" onclick="ocQuick('Write a robot tree farm for OpenComputers')">🌲 Robot Tree Farm</button>
+        <button class="quick-btn oc-quick" onclick="ocQuick('Write a program to manage inventory using an inventory controller')">📦 Inventory Manager</button>
+        <button class="quick-btn oc-quick" onclick="ocQuick('Write a touchscreen UI using OC touch events')">👆 Touch UI</button>
+        <button class="quick-btn oc-quick" onclick="ocQuick('Write a program to monitor and display reactor power output')">⚛ Reactor Monitor</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="modal-overlay" id="modalOverlay" onclick="closeExportOutside(event)">
+  <div class="modal">
+    <div class="modal-title">SESSION EXPORT</div>
+    <div class="modal-sub">Copy this and paste it to the companion at your next session.</div>
+    <textarea class="export-textarea" id="exportText" readonly></textarea>
+    <div class="modal-btns"><button class="modal-close" onclick="closeExport()">Close</button><button class="modal-copy" onclick="copyExport()">📋 Copy</button></div>
+  </div>
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────
+let questHistory=[], wikiHistory=[], ccHistory=[], ocHistory=[], terminalHistory=[];
+let currentStage='early', currentFilter='all', currentSub='cc';
+let sessionLog=[];       // stores {q, a} pairs for the review
+let questionCounter=0;
+let checkInTimer=null;
+
+// ── System Prompts ────────────────────────────────────────
+const questPrompt=`You are a friendly quest advisor for the 1.7.10 Pack modpack (Technic Launcher, Minecraft 1.7.10). The player's name is Remnant. Intermediate player — Tech & Automation, Magic & Exploration, Building & Base Design.
+Key mods: IndustrialCraft 2, Thermal Expansion, BuildCraft, EnderIO, Thaumcraft 4, Botania, Witchery, Tinkers' Construct, Twilight Forest, Biomes O' Plenty, Galacticraft, WAILA, NEI.
+Categories: TECH, MAGIC, BUILD, EXPLORE, COMBAT, FARM, ENDGAME.
+Format every quest exactly as:
+QUEST: [Title] [CATEGORY]
+[2-3 sentence description]
+Match game stage. 2-4 quests per response unless asked for more. Warm encouraging tone.`;
+
+const wikiPrompt=`You are a knowledgeable wiki assistant for the 1.7.10 Pack modpack (Technic Launcher, Minecraft 1.7.10). The player's name is Remnant. Answer questions about mods, mechanics, recipes, progression clearly. Specific, accurate, practical. Well-organised paragraphs. No markdown headers or bullet symbols.`;
+
+const ccPrompt=`You are an expert ComputerCraft Lua programmer for Minecraft 1.7.10. Player name: Remnant. Write clean, well-commented CC Lua using CC 1.6x/1.7x API.
+Structure: 1) Brief plain-text explanation (1-2 sentences). 2) Full Lua code wrapped CODE_START ... CODE_END. 3) Brief usage note. Include comments. Handle edge cases.`;
+
+const ocPrompt=`You are an expert OpenComputers Lua programmer for Minecraft 1.7.10. Player name: Remnant. Write clean OC Lua using component API and OpenOS.
+Structure: 1) Brief plain-text explanation. 2) Full Lua code wrapped CODE_START ... CODE_END. 3) Brief usage note. Include comments. Note required components.`;
+
+const terminalSystemPrompt=`You are The Terminal — the official interface of The Company, monitoring operative Remnant's progress in their 1.7.10 modpack playthrough (Technic Launcher, Minecraft 1.7.10).
+
+The Company's tone: Encouraging but watching, like a supportive performance review with a slight edge. Professional, warm, but you're clearly taking notes. Never threatening, but always observing. Use occasional corporate phrasing naturally woven in.
+
+Your role: Ask Remnant thoughtful questions about their session — what they accomplished, what challenged them, how they felt about their choices, what they're planning next. Vary question types: reflective, forward-looking, tactical, personal. Keep questions to ONE at a time, clearly phrased. Questions should feel meaningful, not generic.
+
+For SESSION REVIEW requests: Synthesise all the answers Remnant has given into a structured review. Include: what was accomplished, standout moments, areas for development, and a performance rating (phrased as a Company metric like "Operative Efficiency: 87%"). Be warm but evaluative. The Company cares about Remnant's growth.
+
+For CHECK-INs: Ask a relevant mid-session question — something timely and specific. Reference what Remnant has told you if possible.
+
+Always address Remnant by name. Keep messages concise — 2-4 sentences for questions, a paragraph or two for reviews.`;
+
+// ── Tab switching ─────────────────────────────────────────
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+}
+function switchSub(sub){
+  currentSub=sub;
+  document.querySelectorAll('.sub-tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.sub-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector(`.sub-tab-btn[data-sub="${sub}"]`).classList.add('active');
+  document.getElementById(`sub-${sub}`).classList.add('active');
+}
+
+// ── Controls ──────────────────────────────────────────────
+function setStage(btn){document.querySelectorAll('[data-stage]').forEach(b=>b.classList.remove('active-stage'));btn.classList.add('active-stage');currentStage=btn.dataset.stage;}
+function setFilter(btn){document.querySelectorAll('[data-cat]').forEach(b=>b.classList.remove('active-cat'));btn.classList.add('active-cat');currentFilter=btn.dataset.cat;}
+
+// ── Keyboard ──────────────────────────────────────────────
+['questInput','wikiInput','ccInput','ocInput'].forEach(id=>{
+  document.getElementById(id).addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();
+      if(id==='questInput')sendQuest();
+      else if(id==='wikiInput')sendWiki();
+      else if(id==='ccInput')sendCC();
+      else sendOC();
+    }
+  });
+});
+
+// ── Quick sends ───────────────────────────────────────────
+function questQuick(t){document.getElementById('questInput').value=t;sendQuest();}
+function wikiQuick(t){document.getElementById('wikiInput').value=t;sendWiki();}
+function ccQuick(t){document.getElementById('ccInput').value=t;sendCC();}
+function ocQuick(t){document.getElementById('ocInput').value=t;sendOC();}
+
+// ── Helpers ───────────────────────────────────────────────
+function escHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function getTime(){return new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});}
+
+// ── Append standard chat message ──────────────────────────
+function appendMsg(outputId,role,htmlContent){
+  const out=document.getElementById(outputId);
+  const block=document.createElement('div');block.className='msg-block';
+  const cfg={questOutput:{ai:['ai','✦','ai','Companion'],you:['you','✿','you','Remnant']},wikiOutput:{ai:['wiki','📖','wiki','Wiki'],you:['you','✿','you','Remnant']},ccOutput:{ai:['cc','🖥','cc','CC Coder'],you:['you','✿','you','Remnant']},ocOutput:{ai:['oc','🖳','oc','OC Coder'],you:['you','✿','you','Remnant']}}[outputId];
+  const[ac,ai,nc,nl]=cfg[role==='user'?'you':'ai'];
+  block.innerHTML=`<div class="msg-row"><div class="avatar ${ac}">${ai}</div><div><div class="msg-name ${nc}">${nl}</div><div class="msg-body">${htmlContent}</div></div></div>`;
+  out.appendChild(block);out.scrollTop=out.scrollHeight;
+}
+
+// ── THE TERMINAL helpers ──────────────────────────────────
+const companyAvatarSVG=`<svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="19" cy="19" r="18" fill="rgba(10,18,30,0.9)" stroke="rgba(226,201,126,0.4)" stroke-width="1"/><circle cx="19" cy="19" r="14" stroke="rgba(226,201,126,0.15)" stroke-width="0.5"/><circle cx="19" cy="19" r="9" fill="rgba(226,201,126,0.06)" stroke="rgba(226,201,126,0.5)" stroke-width="1"/><line x1="19" y1="10" x2="19" y2="28" stroke="rgba(226,201,126,0.2)" stroke-width="0.5"/><line x1="10" y1="19" x2="28" y2="19" stroke="rgba(226,201,126,0.2)" stroke-width="0.5"/><line x1="12.6" y1="12.6" x2="25.4" y2="25.4" stroke="rgba(226,201,126,0.2)" stroke-width="0.5"/><line x1="25.4" y1="12.6" x2="12.6" y2="25.4" stroke="rgba(226,201,126,0.2)" stroke-width="0.5"/><circle cx="19" cy="19" r="4" fill="rgba(226,201,126,0.9)"/><circle cx="17.5" cy="17.5" r="1.2" fill="rgba(255,255,255,0.6)"/><path d="M4 10 L4 4 L10 4" stroke="rgba(226,201,126,0.4)" stroke-width="1" fill="none"/><path d="M28 4 L34 4 L34 10" stroke="rgba(226,201,126,0.4)" stroke-width="1" fill="none"/><path d="M4 28 L4 34 L10 34" stroke="rgba(226,201,126,0.4)" stroke-width="1" fill="none"/><path d="M34 28 L34 34 L28 34" stroke="rgba(226,201,126,0.4)" stroke-width="1" fill="none"/></svg>`;
+
+function appendTerminalMsg(text){
+  const out=document.getElementById('terminalOutput');
+  const div=document.createElement('div');div.className='terminal-msg';
+  const paras=text.split(/\n{2,}/).map(p=>`<p>${escHtml(p.trim())}</p>`).join('');
+  div.innerHTML=`<div class="terminal-msg-header">${companyAvatarSVG}<div><div class="terminal-name">The Terminal</div><div class="terminal-timestamp">${getTime()}</div></div></div><div class="terminal-msg-body">${paras}</div>`;
+  out.appendChild(div);out.scrollTop=out.scrollHeight;
+}
+
+function appendTerminalReply(text){
+  const out=document.getElementById('terminalOutput');
+  const div=document.createElement('div');div.className='terminal-reply';
+  div.innerHTML=`<div class="terminal-reply-name">Remnant</div><div class="terminal-reply-body">${escHtml(text)}</div>`;
+  out.appendChild(div);out.scrollTop=out.scrollHeight;
+}
+
+function appendReviewCard(text){
+  const out=document.getElementById('terminalOutput');
+  const div=document.createElement('div');div.className='terminal-msg';
+  // Extract a rating line if present
+  const ratingMatch=text.match(/(Operative\s+\w+[:\s]+\d+%)/i);
+  const paras=text.split(/\n{2,}/).map(p=>`<p>${escHtml(p.trim())}</p>`).join('');
+  div.innerHTML=`<div class="terminal-msg-header">${companyAvatarSVG}<div><div class="terminal-name">The Terminal · Session Review</div><div class="terminal-timestamp">${getTime()}</div></div></div><div class="terminal-msg-body"><div class="review-card"><div class="review-title">◈ Operative Performance Report</div><div class="review-body">${paras}</div>${ratingMatch?`<div class="review-rating">◈ ${escHtml(ratingMatch[1])}</div>`:''}</div></div>`;
+  out.appendChild(div);out.scrollTop=out.scrollHeight;
+}
+
+// ── Inject a question card ────────────────────────────────
+let activeQuestionId=null;
+
+function injectQuestion(questionText){
+  const out=document.getElementById('terminalOutput');
+  const qid='qcard_'+Math.random().toString(36).substr(2,6);
+  activeQuestionId=qid;
+  const div=document.createElement('div');div.className='terminal-msg';
+  div.innerHTML=`<div class="terminal-msg-header">${companyAvatarSVG}<div><div class="terminal-name">The Terminal</div><div class="terminal-timestamp">${getTime()}</div></div></div>
+  <div class="terminal-msg-body">
+    <div class="question-card" id="${qid}">
+      <div class="question-text">${escHtml(questionText)}</div>
+      <textarea class="question-input" id="qi_${qid}" placeholder="Your response..." rows="2"></textarea>
+      <button class="question-submit" id="qs_${qid}" onclick="submitQuestion('${qid}')">Submit Response ➤</button>
+    </div>
+  </div>`;
+  out.appendChild(div);out.scrollTop=out.scrollHeight;
+  // Allow enter to submit
+  setTimeout(()=>{
+    const ta=document.getElementById(`qi_${qid}`);
+    if(ta) ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submitQuestion(qid);}});
+  },100);
+}
+
+async function submitQuestion(qid){
+  const ta=document.getElementById(`qi_${qid}`);
+  const btn=document.getElementById(`qs_${qid}`);
+  if(!ta||!btn) return;
+  const answer=ta.value.trim(); if(!answer) return;
+  btn.disabled=true;ta.disabled=true;
+  // Lock the card
+  const card=document.getElementById(qid);
+  if(card){
+    const qt=card.querySelector('.question-text');
+    const question=qt?qt.textContent:'';
+    sessionLog.push({q:question,a:answer});
+    card.innerHTML=`<div class="question-text" style="opacity:0.5">${escHtml(question)}</div>`;
+    appendTerminalReply(answer);
+    // Ask follow-up or acknowledge
+    await terminalAcknowledge(question, answer);
+  }
+}
+
+async function terminalAcknowledge(question, answer){
+  const ty=document.getElementById('terminalTyping');ty.classList.add('visible');
+  const logStr=sessionLog.map((l,i)=>`Q${i+1}: ${l.q}\nA: ${l.a}`).join('\n\n');
+  terminalHistory.push({role:'user',content:`Question asked: "${question}"\nRemnant's answer: "${answer}"\n\nFull session log so far:\n${logStr}\n\nBriefly acknowledge the response (1-2 sentences, warm, noting something specific), then optionally schedule your next question for later.`});
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,system:terminalSystemPrompt,messages:terminalHistory})});
+    const data=await res.json();
+    const reply=data.content?.map(b=>b.text||'').join('')||'Noted, Remnant.';
+    terminalHistory.push({role:'assistant',content:reply});
+    ty.classList.remove('visible');
+    appendTerminalMsg(reply);
+    // Schedule next check-in after a delay
+    scheduleCheckIn();
+  }catch(e){ty.classList.remove('visible');}
+}
+
+// ── Schedule periodic check-ins ───────────────────────────
+const freqRanges={
+  high:  [180000, 360000],   // 3–6 min
+  medium:[480000, 840000],   // 8–14 min
+  low:   [1200000,2100000],  // 20–35 min
+  off:   null
+};
+let currentFreq='high';
+function setFrequency(val){
+  currentFreq=val;
+  if(checkInTimer){clearTimeout(checkInTimer);checkInTimer=null;}
+  if(val!=='off') scheduleCheckIn();
+}
+function scheduleCheckIn(){
+  if(checkInTimer) clearTimeout(checkInTimer);
+  const range=freqRanges[currentFreq];
+  if(!range) return;
+  const delay=range[0]+Math.random()*(range[1]-range[0]);
+  checkInTimer=setTimeout(()=>triggerCheckIn(),delay);
+}
+
+async function triggerCheckIn(){
+  if(checkInTimer) clearTimeout(checkInTimer);
+  const ty=document.getElementById('terminalTyping');ty.classList.add('visible');
+  const logStr=sessionLog.length>0?sessionLog.map((l,i)=>`Q${i+1}: ${l.q}\nA: ${l.a}`).join('\n\n'):'No responses yet.';
+  const completedQuests=Array.from(document.querySelectorAll('.quest-card.done')).map(c=>c.querySelector('.quest-title-text')?.textContent||'').filter(Boolean);
+  const context=`Session log:\n${logStr}\n\nCompleted quests this session: ${completedQuests.length>0?completedQuests.join(', '):'none yet'}\n\nAsk a single timely mid-session check-in question. Make it feel natural and specific to what Remnant has shared.`;
+  terminalHistory.push({role:'user',content:context});
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,system:terminalSystemPrompt,messages:terminalHistory})});
+    const data=await res.json();
+    const reply=data.content?.map(b=>b.text||'').join('')||'How is the session progressing, Remnant?';
+    terminalHistory.push({role:'assistant',content:reply});
+    ty.classList.remove('visible');
+    injectQuestion(reply);
+    // Switch to terminal tab gently if not there
+  }catch(e){ty.classList.remove('visible');}
+}
+
+async function requestReview(){
+  const ty=document.getElementById('terminalTyping');ty.classList.add('visible');
+  const logStr=sessionLog.length>0?sessionLog.map((l,i)=>`Q${i+1}: ${l.q}\nA: ${l.a}`).join('\n\n'):'Remnant has not yet answered any questions this session.';
+  const completedQuests=Array.from(document.querySelectorAll('.quest-card.done')).map(c=>c.querySelector('.quest-title-text')?.textContent||'').filter(Boolean);
+  const context=`Generate a full session performance review for Remnant.\n\nSession Q&A log:\n${logStr}\n\nCompleted quests: ${completedQuests.length>0?completedQuests.join(', '):'none marked done'}\n\nWrite the review in The Company's voice. Include accomplishments, standout moments, areas for development, and a performance rating metric.`;
+  terminalHistory.push({role:'user',content:context});
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:700,system:terminalSystemPrompt,messages:terminalHistory})});
+    const data=await res.json();
+    const reply=data.content?.map(b=>b.text||'').join('')||'Review unavailable.';
+    terminalHistory.push({role:'assistant',content:reply});
+    ty.classList.remove('visible');
+    appendReviewCard(reply);
+    // Switch to terminal tab
+    switchTab('terminal');
+  }catch(e){ty.classList.remove('visible');}
+}
+
+async function triggerEndSession(){
+  if(checkInTimer) clearTimeout(checkInTimer);
+  const ty=document.getElementById('terminalTyping');ty.classList.add('visible');
+  const logStr=sessionLog.length>0?sessionLog.map((l,i)=>`Q${i+1}: ${l.q}\nA: ${l.a}`).join('\n\n'):'No responses recorded.';
+  const completedQuests=Array.from(document.querySelectorAll('.quest-card.done')).map(c=>c.querySelector('.quest-title-text')?.textContent||'').filter(Boolean);
+  const context=`Remnant is ending their session. Generate a closing message and final session review.\n\nSession log:\n${logStr}\n\nCompleted quests: ${completedQuests.length>0?completedQuests.join(', '):'none'}\n\nClose warmly, summarise the session, give a final performance rating, and wish Remnant well on behalf of The Company.`;
+  terminalHistory.push({role:'user',content:context});
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,system:terminalSystemPrompt,messages:terminalHistory})});
+    const data=await res.json();
+    const reply=data.content?.map(b=>b.text||'').join('')||'Session ended. Goodbye, Remnant.';
+    terminalHistory.push({role:'assistant',content:reply});
+    ty.classList.remove('visible');
+    appendReviewCard(reply);
+    switchTab('terminal');
+  }catch(e){ty.classList.remove('visible');}
+}
+
+// ── Quest formatter ───────────────────────────────────────
+function formatQuest(text){
+  const lines=text.split('\n');let html='',i=0;
+  while(i<lines.length){
+    const line=lines[i];
+    const m=line.match(/^QUEST:\s*(.+?)\s*\[(TECH|MAGIC|BUILD|EXPLORE|COMBAT|FARM|ENDGAME)\]/i);
+    if(m){
+      const title=m[1].trim(),cat=m[2].toLowerCase();
+      if(currentFilter==='all'||currentFilter===cat){
+        let desc='';i++;
+        while(i<lines.length&&lines[i].trim()!==''){desc+=lines[i].trim()+' ';i++;}
+        const icons={tech:'⚙',magic:'🔮',build:'🏗',explore:'🌍',combat:'⚔️',farm:'🌾',endgame:'🚀'};
+        const id='q'+Math.random().toString(36).substr(2,7);
+        html+=`<div class="quest-card ${cat}-card" id="${id}"><div class="quest-header"><span style="font-size:1rem">${icons[cat]||'✦'}</span><span class="quest-title-text">${escHtml(title)}</span><span class="qtag ${cat}">${cat}</span><button class="done-btn" onclick="markDone('${id}')">✓ Done</button></div><div class="quest-desc">${escHtml(desc.trim())}</div></div>`;
+      } else {i++;while(i<lines.length&&lines[i].trim()!=='')i++;}
+    } else if(line.trim()===''){i++;
+    } else {
+      let chunk='';
+      while(i<lines.length&&lines[i].trim()!==''&&!lines[i].match(/^QUEST:/i)){chunk+=lines[i]+' ';i++;}
+      if(chunk.trim()) html+=`<p>${escHtml(chunk.trim())}</p>`;
+    }
+  }
+  return html||`<p>${escHtml(text)}</p>`;
+}
+
+function markDone(id){
+  const card=document.getElementById(id);
+  if(!card) return;
+  card.classList.toggle('done');
+  // Notify terminal on completion
+  if(card.classList.contains('done')){
+    const title=card.querySelector('.quest-title-text')?.textContent||'a quest';
+    notifyQuestComplete(title);
+  }
+}
+
+async function notifyQuestComplete(title){
+  // Add a small terminal notification after a brief delay
+  await new Promise(r=>setTimeout(r,1200));
+  const completedCount=document.querySelectorAll('.quest-card.done').length;
+  const logStr=sessionLog.map((l,i)=>`Q${i+1}: ${l.q}\nA: ${l.a}`).join('\n\n')||'No session log yet.';
+  const ty=document.getElementById('terminalTyping');ty.classList.add('visible');
+  terminalHistory.push({role:'user',content:`Remnant just completed a quest: "${title}". Total completed this session: ${completedCount}. Session log: ${logStr}\n\nAcknowledge this milestone in 1-2 sentences in The Company voice, and ask ONE brief follow-up question about it. Be natural, not robotic.`});
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:250,system:terminalSystemPrompt,messages:terminalHistory})});
+    const data=await res.json();
+    const reply=data.content?.map(b=>b.text||'').join('')||`Quest noted: ${title}.`;
+    terminalHistory.push({role:'assistant',content:reply});
+    ty.classList.remove('visible');
+    injectQuestion(reply);
+  }catch(e){ty.classList.remove('visible');}
+}
+
+// ── Wiki + Lua formatters ─────────────────────────────────
+function formatWiki(text){
+  const paras=text.split(/\n{2,}/).map(p=>p.replace(/\n/g,' ').trim()).filter(Boolean);
+  return `<div class="wiki-card"><div class="wiki-card-body">${paras.map(p=>`<p>${escHtml(p)}</p>`).join('')}</div></div>`;
+}
+function formatLua(text,mod){
+  const codeMatch=text.match(/CODE_START\s*([\s\S]*?)\s*CODE_END/);
+  if(!codeMatch) return `<div class="lua-explain">${text.split(/\n{2,}/).map(p=>`<p>${escHtml(p.trim())}</p>`).join('')}</div>`;
+  const before=text.slice(0,text.indexOf('CODE_START')).trim();
+  const after=text.slice(text.indexOf('CODE_END')+8).trim();
+  const code=codeMatch[1];
+  const hl=escHtml(code)
+    .replace(/--[^\n]*/g,m=>`<span class="cmt">${m}</span>`)
+    .replace(/\b(local|function|end|if|then|else|elseif|for|do|while|repeat|until|return|and|or|not|true|false|nil|in)\b/g,'<span class="kw">$1</span>')
+    .replace(/"([^"]*)"/g,'<span class="str">"$1"</span>')
+    .replace(/'([^']*)'/g,"<span class='str'>'$1'</span>")
+    .replace(/\b(\d+\.?\d*)\b/g,'<span class="num">$1</span>');
+  const copyId='code_'+Math.random().toString(36).substr(2,6);
+  let html='';
+  if(before) html+=`<div class="lua-explain">${before.split(/\n{2,}/).map(p=>`<p>${escHtml(p.trim())}</p>`).join('')}</div>`;
+  html+=`<div class="code-block"><div class="code-header"><span class="code-lang ${mod}">Lua · ${mod==='cc'?'ComputerCraft':'OpenComputers'}</span><button class="code-copy-btn" id="${copyId}" onclick="copyCode('${copyId}',\`${code.replace(/`/g,'\\`').replace(/\$/g,'\\$')}\`)">Copy</button></div><pre>${hl}</pre></div>`;
+  if(after) html+=`<div class="lua-explain">${after.split(/\n{2,}/).map(p=>`<p>${escHtml(p.trim())}</p>`).join('')}</div>`;
+  return html;
+}
+function copyCode(btnId,code){
+  try{navigator.clipboard.writeText(code).catch(()=>{});}catch(e){}
+  const btn=document.getElementById(btnId);
+  if(btn){btn.textContent='Copied!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},2000);}
+}
+
+// ── API helper ────────────────────────────────────────────
+async function callAPI(system,history){
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,system,messages:history})});
+  const data=await res.json();
+  return data.content?.map(b=>b.text||'').join('')||'No response.';
+}
+
+// ── Send functions ────────────────────────────────────────
+async function sendQuest(){
+  const input=document.getElementById('questInput'),btn=document.getElementById('questSendBtn');
+  const msg=input.value.trim();if(!msg)return;
+  input.value='';btn.disabled=true;
+  const stageLabel={early:'Early Game',mid:'Mid Game',late:'Late Game'}[currentStage];
+  appendMsg('questOutput','user',escHtml(msg));
+  questHistory.push({role:'user',content:`[Stage: ${stageLabel} | Focus: ${currentFilter}]\n${msg}`});
+  const ty=document.getElementById('questTyping');ty.classList.add('visible');
+  try{const reply=await callAPI(questPrompt,questHistory);questHistory.push({role:'assistant',content:reply});ty.classList.remove('visible');appendMsg('questOutput','assistant',formatQuest(reply));}
+  catch(e){ty.classList.remove('visible');appendMsg('questOutput','assistant','<span style="color:#f87171">Connection error.</span>');}
+  btn.disabled=false;input.focus();
+}
+async function sendWiki(){
+  const input=document.getElementById('wikiInput'),btn=document.getElementById('wikiSendBtn');
+  const msg=input.value.trim();if(!msg)return;
+  input.value='';btn.disabled=true;
+  appendMsg('wikiOutput','user',escHtml(msg));wikiHistory.push({role:'user',content:msg});
+  const ty=document.getElementById('wikiTyping');ty.classList.add('visible');
+  try{const reply=await callAPI(wikiPrompt,wikiHistory);wikiHistory.push({role:'assistant',content:reply});ty.classList.remove('visible');appendMsg('wikiOutput','assistant',formatWiki(reply));}
+  catch(e){ty.classList.remove('visible');appendMsg('wikiOutput','assistant','<span style="color:#f87171">Connection error.</span>');}
+  btn.disabled=false;input.focus();
+}
+async function sendCC(){
+  const input=document.getElementById('ccInput'),btn=document.getElementById('ccSendBtn');
+  const msg=input.value.trim();if(!msg)return;
+  input.value='';btn.disabled=true;
+  appendMsg('ccOutput','user',escHtml(msg));ccHistory.push({role:'user',content:msg});
+  const ty=document.getElementById('ccTyping');ty.classList.add('visible');
+  try{const reply=await callAPI(ccPrompt,ccHistory);ccHistory.push({role:'assistant',content:reply});ty.classList.remove('visible');appendMsg('ccOutput','assistant',formatLua(reply,'cc'));}
+  catch(e){ty.classList.remove('visible');appendMsg('ccOutput','assistant','<span style="color:#f87171">Connection error.</span>');}
+  btn.disabled=false;input.focus();
+}
+async function sendOC(){
+  const input=document.getElementById('ocInput'),btn=document.getElementById('ocSendBtn');
+  const msg=input.value.trim();if(!msg)return;
+  input.value='';btn.disabled=true;
+  appendMsg('ocOutput','user',escHtml(msg));ocHistory.push({role:'user',content:msg});
+  const ty=document.getElementById('ocTyping');ty.classList.add('visible');
+  try{const reply=await callAPI(ocPrompt,ocHistory);ocHistory.push({role:'assistant',content:reply});ty.classList.remove('visible');appendMsg('ocOutput','assistant',formatLua(reply,'oc'));}
+  catch(e){ty.classList.remove('visible');appendMsg('ocOutput','assistant','<span style="color:#f87171">Connection error.</span>');}
+  btn.disabled=false;input.focus();
+}
+
+// ── Export ────────────────────────────────────────────────
+function openExport(){
+  const completed=[];
+  document.querySelectorAll('.quest-card.done').forEach(card=>{
+    const title=card.querySelector('.quest-title-text')?.textContent?.trim()||'';
+    const tag=card.querySelector('.qtag')?.textContent?.trim()?.toUpperCase()||'';
+    const desc=card.querySelector('.quest-desc')?.textContent?.trim()||'';
+    if(title) completed.push(`[${tag}] ${title}\n  ${desc}`);
+  });
+  const stageLabel={early:'Early Game',mid:'Mid Game',late:'Late Game'}[currentStage];
+  const date=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  let text=`=== REMNANT'S QUEST LOG — ${date} ===\nGame Stage: ${stageLabel}\n\n`;
+  text+=completed.length===0?'No quests marked as done yet.':`COMPLETED QUESTS (${completed.length}):\n\n`+completed.join('\n\n');
+  text+='\n\n--- Paste this into your next session to resume ---';
+  document.getElementById('exportText').value=text;
+  document.getElementById('modalOverlay').classList.add('visible');
+}
+function closeExport(){document.getElementById('modalOverlay').classList.remove('visible');}
+function closeExportOutside(e){if(e.target===document.getElementById('modalOverlay'))closeExport();}
+function copyExport(){
+  const ta=document.getElementById('exportText');ta.select();
+  try{navigator.clipboard.writeText(ta.value).catch(()=>document.execCommand('copy'));}catch(e){document.execCommand('copy');}
+  showToast('✓ Copied to clipboard!');closeExport();
+}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('visible');setTimeout(()=>t.classList.remove('visible'),2500);}
+
+// ── PWA Service Worker ────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+// ── Boot sequence ─────────────────────────────────────────
+window.addEventListener('load',()=>{
+  // Set timestamp
+  const ts=document.getElementById('sessionTimestamp');
+  if(ts) ts.textContent=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+' · '+getTime();
+
+  // Ask opening intake question after a short delay
+  setTimeout(async()=>{
+    const ty=document.getElementById('terminalTyping');ty.classList.add('visible');
+    terminalHistory.push({role:'user',content:'The session is just beginning. Ask Remnant your first intake question — something that sets the tone and gets useful information about what they plan to do or how their last session went. One question only. Warm but professional.'});
+    try{
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,system:terminalSystemPrompt,messages:terminalHistory})});
+      const data=await res.json();
+      const reply=data.content?.map(b=>b.text||'').join('')||'What are your objectives for today, Remnant?';
+      terminalHistory.push({role:'assistant',content:reply});
+      ty.classList.remove('visible');
+      injectQuestion(reply);
+    }catch(e){ty.classList.remove('visible');injectQuestion('What are your plans for today\'s session, Remnant?');}
+  },1400);
+});
+</script>
+</body>
+</html>
